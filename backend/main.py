@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Response
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
@@ -17,7 +17,7 @@ app.add_middleware(
 )
 
 # 图片根目录
-ROOT_DIR = Path(r"D:\AI-Photo\素材\ytm").resolve()
+ROOT_DIR = Path(r"D:\AI-Photo\素材\diff").resolve()
 
 # -----------------------
 # API：列出目录内容

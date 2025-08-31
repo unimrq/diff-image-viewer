@@ -74,7 +74,7 @@ function initCanvasEvents() {
       offCtx.save()
       offCtx.globalCompositeOperation = 'destination-out'
       offCtx.beginPath()
-      offCtx.arc(x / scale, y / scale, radius.value, 0, Math.PI * 2)
+      offCtx.arc(x / scale, y / scale, radius.value / scale, 0, Math.PI * 2)
       offCtx.fill()
       offCtx.restore()
     }
