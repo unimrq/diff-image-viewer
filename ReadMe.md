@@ -25,12 +25,13 @@
 
 ```
 ROOT_DIR = Path(r"D:\AI-Photo\素材\diff").resolve()
+THUMB_DIR = Path(r"D:\AI-Photo\thumbnails").resolve()
 ```
 ### 2. 执行图片压缩
 切换到 backend 文件夹并执行`resize.py`：
 
 ### 3. 安装前端依赖
-切换到 frontend 文件夹并执行：
+先安装nodejs，然后切换到 frontend 文件夹并执行：
 ```
 npm install
 ```
@@ -48,7 +49,7 @@ python start_all.py
 ```
 
 ## 特别注意
-本应用的图片识别方式较为简单，系统仅能识别成对的差分图片，文件名需分别为 XXX+a.jpg 和 XXX+b.jpg。如有特殊需求，可根据实际情况自行修改代码实现。
+本仅能识别成对的差分图片，文件名需分别为 XXX+a.jpg 和 XXX+b.jpg，成对的两张图片文件在同一级目录下。如有特殊需求，可根据实际情况自行修改代码实现。
 
 ## 功能更新
 ### V1.0
