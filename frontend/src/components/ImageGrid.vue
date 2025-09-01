@@ -3,12 +3,13 @@
     <!-- 瀑布流 -->
     <div class="masonry" :style="{ columnCount: columns }">
       <div v-for="img in images" :key="img" class="masonry-item">
-        <img
-          :src="img"
-          @click="openViewer(img)"
-          @dblclick="openViewer(img)"
-        />
-      </div>
+          <img
+            :src="getThumbnail(img)"
+            loading="lazy"
+            @click="openViewer(img)"
+            @dblclick="openViewer(img)"
+          />
+    </div>
     </div>
   </div>
 </template>
@@ -24,6 +25,19 @@ function openViewer(imgPath) {
   const encoded = encodeURIComponent(imgPath)
   window.open(`${window.location.origin}/viewer/${encoded}`, '_blank')
 }
+function getThumbnail(imgUrl) {
+  try {
+    const url = new URL(imgUrl)
+    const host = url.origin       // 包含协议+IP+端口，例如 http://100.123.100.150:8000
+    const relativePath = url.pathname.replace(/^\/images\//, "")
+    return `${host}/thumbnails/${relativePath}`
+  } catch (e) {
+    console.error("URL 解析失败:", imgUrl)
+    return imgUrl
+  }
+}
+
+
 </script>
 
 <style scoped>

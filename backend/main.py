@@ -10,15 +10,15 @@ app = FastAPI()
 # -----------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # 前端地址
+    allow_origins=["*"],  # 前端地址
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # 图片根目录
-ROOT_DIR = Path(r"D:\AI-Photo\素材\diff").resolve()
-
+ROOT_DIR = Path(r"D:\AI-Photo\素材\ytm").resolve()
+THUMB_DIR = Path(r"D:\AI-Photo\thumbnails").resolve()
 # -----------------------
 # API：列出目录内容
 # -----------------------
@@ -47,4 +47,12 @@ def serve_image(path: str):
         return JSONResponse({"error": "File not found"}, status_code=404)
 
     # 在 FileResponse 里加 headers，保证跨域
+    return FileResponse(file_path, headers={"Access-Control-Allow-Origin": "*"})
+
+
+@app.get("/thumbnails/{path:path}")
+def serve_thumbnail(path: str):
+    file_path = THUMB_DIR / path
+    if not file_path.exists() or not file_path.is_file():
+        return JSONResponse({"error": "File not found"}, status_code=404)
     return FileResponse(file_path, headers={"Access-Control-Allow-Origin": "*"})

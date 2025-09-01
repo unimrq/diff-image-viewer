@@ -157,7 +157,7 @@ onBeforeUnmount(() => {
 .viewer {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 98vh;
   background: #333;
   overflow: hidden;
 }

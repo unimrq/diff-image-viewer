@@ -17,7 +17,7 @@ frontend_proc = subprocess.Popen(
 
 # 启动后端
 backend_proc = subprocess.Popen(
-    ["python", "-m", "uvicorn", "main:app", "--reload"],
+    ["python", "-m", "uvicorn", "main:app", "--reload", "--host", "0.0.0.0"],
     cwd=BACKEND_DIR,
     shell=True
 )
