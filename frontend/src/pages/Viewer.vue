@@ -31,77 +31,126 @@ let mousePos = null
 let drawing = false
 
 function getXY(e) {
+  if (!canvas.value || !imgB.width || !imgB.height) return { x: 0, y: 0 }
+
   const rect = canvas.value.getBoundingClientRect()
   const scaleX = canvas.value.width / rect.width
   const scaleY = canvas.value.height / rect.height
-  return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY }
+
+  const offsetX = (canvas.value.width - imgB.width * scale) / 2
+  const offsetY = (canvas.value.height - imgB.height * scale) / 2
+
+  return {
+    x: (e.clientX - rect.left) * scaleX - offsetX,
+    y: (e.clientY - rect.top) * scaleY - offsetY
+  }
 }
 
 function redraw() {
+  if (!canvas.value || !loaded.a || !loaded.b) return
   const c = canvas.value
   const ctx = c.getContext('2d')
-  if (!loaded.a || !loaded.b) return
-
   ctx.clearRect(0, 0, c.width, c.height)
-  // 底层 b 图
-  ctx.drawImage(imgB, 0, 0, imgB.width * scale, imgB.height * scale)
-  // 顶层 a 图
-  ctx.drawImage(offCanvas, 0, 0, offCanvas.width * scale, offCanvas.height * scale)
 
-  // 半透明提示圆
+  const offsetX = (c.width - imgB.width * scale) / 2
+  const offsetY = (c.height - imgB.height * scale) / 2
+
+  // 绘制底图 B
+  ctx.drawImage(imgB, offsetX, offsetY, imgB.width * scale, imgB.height * scale)
+  // 绘制顶图 A
+  ctx.drawImage(offCanvas, offsetX, offsetY, offCanvas.width * scale, offCanvas.height * scale)
+
+  // 鼠标半透明圆
   if (mousePos) {
     ctx.save()
     ctx.beginPath()
-    ctx.arc(mousePos.x, mousePos.y, radius.value, 0, Math.PI * 2)
+    ctx.arc(mousePos.x + offsetX, mousePos.y + offsetY, radius.value, 0, Math.PI * 2)
     ctx.fillStyle = 'rgba(0,0,0,0.3)'
     ctx.fill()
     ctx.restore()
   }
 }
 
+function updateScale() {
+  if (!canvas.value || !imgB.width || !imgB.height) return
+
+  const toolbarHeight = canvas.value.parentElement.querySelector('.toolbar')?.offsetHeight || 50
+  const maxWidth = window.innerWidth
+  const maxHeight = window.innerHeight - toolbarHeight
+
+  const imgW = imgB.width
+  const imgH = imgB.height
+
+  scale = Math.min(maxWidth / imgW, maxHeight / imgH)
+
+  canvas.value.width = imgW * scale
+  canvas.value.height = imgH * scale
+}
+
 function initCanvasEvents() {
   const c = canvas.value
+  if (!c) return
 
+  // ---------- 桌面端 ----------
   c.addEventListener('mousedown', () => drawing = true)
   c.addEventListener('mouseup', () => drawing = false)
   c.addEventListener('mouseleave', () => drawing = false)
 
   c.addEventListener('mousemove', e => {
-    const { x, y } = getXY(e)
-    mousePos = { x, y }
+    handleDraw(getXY(e))
+  })
 
-    if (drawing && loaded.a && loaded.b) {
-      offCtx.save()
-      offCtx.globalCompositeOperation = 'destination-out'
-      offCtx.beginPath()
-      offCtx.arc(x / scale, y / scale, radius.value / scale, 0, Math.PI * 2)
-      offCtx.fill()
-      offCtx.restore()
-    }
+  // ---------- 移动端 ----------
+  c.addEventListener('touchstart', e => {
+    e.preventDefault()   // 防止滚动
+    drawing = true
+    const touch = e.touches[0]
+    handleDraw(getXY(touch))
+  }, { passive: false })
 
+  c.addEventListener('touchmove', e => {
+    e.preventDefault()
+    if (!drawing) return
+    const touch = e.touches[0]
+    handleDraw(getXY(touch))
+  }, { passive: false })
+
+  c.addEventListener('touchend', e => {
+    drawing = false
+    mousePos = null
     redraw()
   })
 }
 
+// ---------- 抽离的绘制函数 ----------
+function handleDraw(pos) {
+  if (!pos) return
+  mousePos = pos
+
+  if (drawing && loaded.a && loaded.b) {
+    offCtx.save()
+    offCtx.globalCompositeOperation = 'destination-out'
+    offCtx.beginPath()
+    offCtx.arc(pos.x / scale, pos.y / scale, radius.value / scale, 0, Math.PI * 2)
+    offCtx.fill()
+    offCtx.restore()
+  }
+
+  redraw()
+}
+
+
 function clearATop() {
+  if (!offCtx) return
   offCtx.clearRect(0, 0, offCanvas.width, offCanvas.height)
   redraw()
 }
 
 function restoreATop() {
+  if (!offCtx) return
   offCtx.clearRect(0, 0, offCanvas.width, offCanvas.height)
   offCtx.drawImage(imgA, 0, 0)
   redraw()
-}
-
-function updateScale() {
-  const c = canvas.value
-  if (!imgB.width || !imgB.height) return
-  const toolbarHeight = 50
-  const ch = window.innerHeight - toolbarHeight
-  scale = ch / imgB.height
-  c.width = imgB.width * scale
-  c.height = imgB.height * scale
 }
 
 function loadImages(aPath) {
@@ -131,36 +180,35 @@ function loadImages(aPath) {
   imgB.src = bPath + '?t=' + Date.now()
 }
 
-watch(
-  () => route.params.imgPath,
-  (p) => loadImages(p),
-  { immediate: true }
-)
+watch(() => route.params.imgPath, (p) => loadImages(p), { immediate: true })
 
 onMounted(() => {
   initCanvasEvents()
-  window.addEventListener('resize', () => {
-    updateScale()
-    redraw()
-  })
+  window.addEventListener('resize', onResize)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', () => {
-    updateScale()
-    redraw()
-  })
+  window.removeEventListener('resize', onResize)
 })
+
+function onResize() {
+  updateScale()
+  redraw()
+}
 </script>
 
 <style scoped>
 .viewer {
   display: flex;
   flex-direction: column;
-  height: 98vh;
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
   background: #333;
   overflow: hidden;
 }
+
 .toolbar {
   display: flex;
   align-items: center;
@@ -168,9 +216,11 @@ onBeforeUnmount(() => {
   gap: 10px;
   background: #444;
   color: white;
+  flex-shrink: 0;
+  margin: 0;
 }
+
 canvas {
-  flex: 1;
   display: block;
   margin: auto;
   cursor: crosshair;

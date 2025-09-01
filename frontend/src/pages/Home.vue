@@ -2,7 +2,13 @@
   <div>
     <!-- 工具栏 -->
     <div class="toolbar">
-      <h2>差分图片浏览器</h2>
+      <!-- 移动端菜单按钮 -->
+      <button class="menu-btn" @click="toggleSidebar" v-if="isMobile">
+        ☰
+      </button>
+
+      <!-- 桌面端显示标题 -->
+      <h2 v-if="!isMobile">差分图片浏览器</h2>
 
       <div class="toolbar-controls">
         <!-- 切换开关 -->
@@ -27,11 +33,20 @@
       </div>
     </div>
 
+    <!-- 半透明遮罩 -->
+    <div v-if="isMobile && sidebarOpen" class="overlay" @click="sidebarOpen = false"></div>
+
     <!-- 主体布局 -->
     <div class="container">
       <!-- 左侧导航栏 -->
-      <aside class="sidebar">
-        <FolderTree :folders="folderTree" @select="handleSelect" />
+      <aside
+        class="sidebar"
+        :class="{ open: sidebarOpen || !isMobile }"
+      >
+        <FolderTree
+          :folders="folderTree"
+          @select="handleMobileSelect"
+        />
       </aside>
 
       <!-- 右侧图片瀑布流 -->
@@ -43,17 +58,34 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import FolderTree from '../components/FolderTree.vue'
 import ImageGrid from '../components/ImageGrid.vue'
 
 const folderTree = ref([])
 const currentImages = ref([])
 const currentPath = ref('')
-const columns = ref(6)
-const showA = ref(true)  // true 显示 a.jpg，false 显示 b.jpg
+const showA = ref(true)
+const sidebarOpen = ref(false)
 
-// 获取当前后端 API 地址，支持动态 IP/端口
+// 响应式判断是否为移动端
+const isMobile = computed(() => window.innerWidth < 768)
+
+// 列数根据屏幕自动设置
+const columns = ref(isMobile.value ? 2 : 5)
+
+// 切换侧边栏
+function toggleSidebar() {
+  sidebarOpen.value = !sidebarOpen.value
+}
+
+// 移动端点击目录后自动收起
+function handleMobileSelect(folder) {
+  handleSelect(folder)
+  if (isMobile.value) sidebarOpen.value = false
+}
+
+// 获取当前后端 API 地址
 function getApiBase() {
   const { protocol, hostname } = window.location
   const backendPort = 8000
@@ -71,9 +103,16 @@ async function loadFolder(path = '') {
 // 初始化根目录
 onMounted(async () => {
   folderTree.value = await loadFolder('')
+  window.addEventListener('resize', onResize)
 })
 
-// 编码图片 URL，保证中文/空格不会被截断
+// 监听窗口 resize
+function onResize() {
+  if (!isMobile.value) sidebarOpen.value = false
+  columns.value = isMobile.value ? 2 : 5
+}
+
+// 编码图片 URL
 function encodeImageURL(path) {
   const base = getApiBase()
   return encodeURI(`${base}/images/${path}`)
@@ -109,6 +148,7 @@ watch(showA, () => {
 })
 </script>
 
+
 <style scoped>
 /* 工具栏样式 */
 .toolbar {
@@ -130,48 +170,43 @@ watch(showA, () => {
   gap: 16px;
 }
 
-/* 开关样式 */
-.toggle-switch {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
-.toggle-switch input {
-  display: none;
-}
-.toggle-switch .slider {
-  width: 36px;
-  height: 18px;
-  background-color: #ccc;       /* 未选中时灰色 */
-  border-radius: 9px;
-  position: relative;
-  transition: 0.2s;
-}
-.toggle-switch input:checked + .slider {
-  background-color: #00cc66;    /* 选中时绿色 */
-}
-.toggle-switch .slider::before {
-  content: '';
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  left: 1px;
-  top: 1px;
-  background-color: white;       /* 滑块保持白色，突出 */
-  border-radius: 50%;
-  transition: 0.2s;
-}
-.toggle-switch input:checked + .slider::before {
-  transform: translateX(18px);
-}
-
-.toggle-switch .label-text {
-  font-size: 14px;
+/* 移动端菜单按钮 */
+.menu-btn {
+  font-size: 24px;
+  background: none;
+  border: none;
   color: white;
-  text-shadow: 0 0 2px rgba(0,0,0,0.5); /* 文字更清晰 */
+  cursor: pointer;
+  margin-right: 8px;
 }
 
+/* 半透明遮罩 */
+.overlay {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 60px);
+  background-color: rgba(0,0,0,0.4);
+  z-index: 900;
+}
+
+/* 主体布局 */
+.container {
+  display: flex;
+  height: calc(100vh - 60px);
+}
+.sidebar {
+  width: 250px;
+  border-right: 1px solid #ddd;
+  overflow-y: auto;
+  padding: 10px 0;
+  background: #f9f9f9;
+  transition: transform 0.3s;
+}
+.sidebar.open {
+  transform: translateX(0);
+}
 /* 列数选择 */
 .column-selector {
   display: flex;
@@ -183,17 +218,23 @@ watch(showA, () => {
 .column-selector span {
   font-weight: 500;
 }
+
+/* 下拉框容器 */
 .select-wrapper {
   position: relative;
   display: inline-block;
   width: 60px;
 }
+
+/* 隐藏原生箭头 */
 .select-wrapper select {
   width: 100%;
-  padding: 4px 28px 4px 8px;
+  padding: 4px 24px 4px 8px; /* 右侧留空间给自定义箭头 */
   border-radius: 4px;
   border: none;
   appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   background-color: rgba(255, 255, 255, 0.2);
   color: black;
   font-size: 14px;
@@ -203,28 +244,35 @@ watch(showA, () => {
   outline: none;
   background-color: rgba(255, 255, 255, 0.3);
 }
+
+/* 自定义箭头 */
 .select-wrapper .arrow {
   position: absolute;
-  right: 8px;
+  right: 6px;
   top: 50%;
   transform: translateY(-50%);
-  width: 10px;
+  width: 12px;   /* 小巧箭头 */
   height: 6px;
   pointer-events: none;
   fill: white;
 }
 
-/* 主体布局 */
-.container {
-  display: flex;
-  height: calc(100vh - 60px); /* 减去 toolbar 高度 */
+@media (max-width: 767px) {
+  .sidebar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    height: calc(100vh - 60px);
+    width: 100%;
+    z-index: 1000;
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
 }
-.sidebar {
-  width: 250px;
-  border-right: 1px solid #ddd;
-  overflow-y: auto;
-  padding: 10px 0px;
-}
+
+/* 内容区域 */
 .content {
   flex: 1;
   padding: 10px;
