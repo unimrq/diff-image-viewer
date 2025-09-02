@@ -1,6 +1,7 @@
+import time
 import uuid
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,9 +9,9 @@ from pathlib import Path
 from loguru import logger
 from PIL import Image
 from backend.resize import generate_thumbnail, process_folder
-from my_config import ROOT_DIR, THUMB_DIR, generator
+from my_config import ROOT_DIR, THUMB_DIR, generator, PASSWORD
 from urllib.parse import urlparse, unquote
-
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 app = FastAPI()
 
@@ -182,3 +183,30 @@ def serve_cache_image(filename: str):
     if not file_path.exists():
         return JSONResponse({"error": "File not found"}, status_code=404)
     return FileResponse(file_path, headers={"Access-Control-Allow-Origin": "*"})
+
+
+# 简单的 token 存储，可以替换成 redis/jwt
+VALID_TOKENS = set()
+
+
+class LoginRequest(BaseModel):
+    password: str
+
+@app.post("/login")
+async def login(req: LoginRequest):
+    if req.password == PASSWORD:
+        now = str(time.time())
+        token = str(uuid.uuid5(uuid.NAMESPACE_DNS, now))
+        VALID_TOKENS.add(token)
+        return {"success": True, "token": token}
+    raise HTTPException(status_code=401, detail="密码错误")
+
+
+# 鉴权依赖
+security = HTTPBearer()
+
+def check_auth(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    if token not in VALID_TOKENS:
+        raise HTTPException(status_code=401, detail="未授权")
+    return token

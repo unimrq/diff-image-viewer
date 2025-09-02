@@ -4,6 +4,7 @@ from backend.run import ImageGenerator  # 引入你整理好的模块
 # 图片根目录
 ROOT_DIR = Path(r"D:\AI-Photo\素材\ty").resolve()
 THUMB_DIR = Path(r"D:\AI-Photo\thumbnails").resolve()
+PASSWORD = "12345678"
 
 # 初始化生成器
 generator = ImageGenerator(

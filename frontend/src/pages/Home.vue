@@ -8,7 +8,7 @@
       </button>
 
       <!-- 桌面端显示标题 -->
-      <h2 >差分图片浏览器</h2>
+      <h2>差分图片浏览器</h2>
 
       <!-- 设置按钮 -->
       <button class="settings-btn" @click="settingsOpen = true">⚙</button>
@@ -25,24 +25,25 @@
         <div class="panel-body">
           <!-- 1. 显示a/b开关 -->
           <div class="panel-item">
-            <span>1. 显示图片a</span>
+            <span>显示图片A</span>
             <label class="toggle-switch">
-              <input type="checkbox" v-model="showA" >
+              <input type="checkbox" v-model="showA">
               <span class="slider"></span>
             </label>
           </div>
 
-            <!-- 2. 透视模式开关 -->
+          <!-- 2. 透视模式开关 -->
           <div class="panel-item">
-            <span>2. 透视模式</span>
+            <span>透视模式</span>
             <label class="toggle-switch">
               <input type="checkbox" v-model="perspectiveMode">
               <span class="slider"></span>
             </label>
           </div>
 
+          <!-- 3. 省流模式 -->
           <div class="panel-item">
-            <span>3. 省流模式</span>
+            <span>省流模式</span>
             <label class="toggle-switch">
               <input type="checkbox" v-model="lowDataMode">
               <span class="slider"></span>
@@ -51,7 +52,7 @@
 
           <!-- 4. 列数选择 -->
           <div class="panel-item">
-            <span>4. 图片列数</span>
+            <span>图片列数</span>
             <select v-model="columns">
               <option v-for="n in 12" :key="n" :value="n">{{ n }}</option>
             </select>
@@ -59,9 +60,30 @@
 
           <!-- 5. 重载缩略图 -->
           <div class="panel-item">
-            <span>5. 重载缩略图</span>
+            <span>图片扫描</span>
             <button class="action-btn" @click="generateThumbnails">执行</button>
           </div>
+
+          <!-- 6. 密码登录 -->
+          <div class="panel-item">
+            <span>访问密码</span>
+            <button class="action-btn" @click="tryLogin">登录</button>
+          </div>
+
+          <div style="display: flex; width: 100%; margin-top: 4px; margin-left: 24px; align-items: center;">
+            <input
+              type="password"
+              v-model="password"
+              maxlength="20"
+              class="password-input-underline"
+              placeholder="请输入密码"
+              style="margin-right: 8px;"
+            />
+
+          </div>
+
+
+
         </div>
       </div>
     </div>
@@ -91,13 +113,12 @@
           :lowDataMode="lowDataMode"
         />
       </main>
-
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue'
 import FolderTree from '../components/FolderTree.vue'
 import ImageGrid from '../components/ImageGrid.vue'
 
@@ -107,34 +128,67 @@ const currentPath = ref('')
 const sidebarOpen = ref(false)
 const settingsOpen = ref(false)
 
-
 // 响应式判断是否为移动端
 const isMobile = computed(() => window.innerWidth < 768)
-
 
 const showA = ref(localStorage.getItem('showA') === 'false' ? false : true)
 const perspectiveMode = ref(localStorage.getItem('perspectiveMode') === 'true')
 const columns = ref(Number(localStorage.getItem('columns')) || (isMobile.value ? 2 : 5))
 const lowDataMode = ref(localStorage.getItem('lowDataMode') === 'true')
 
-// 切换侧边栏
+// 密码 & token
+const password = ref(localStorage.getItem('password') === "")
+const authToken = ref(localStorage.getItem("authToken") || "")
+
+// ------------------ 登录鉴权 ------------------
+async function tryLogin() {
+  const base = getApiBase()
+  try {
+    const res = await fetch(`${base}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: password.value })
+    })
+    const data = await res.json()
+    if (data.success) {
+      authToken.value = data.token
+      localStorage.setItem("authToken", data.token)
+      alert("登录成功")
+      window.location.reload()
+      localStorage.setItem('password', password.value)
+      settingsOpen.value = false
+    } else {
+      alert("密码错误")
+    }
+  } catch (err) {
+    console.error(err)
+    alert("登录失败")
+  }
+}
+
+async function authedFetch(url, options = {}) {
+  if (!authToken.value) throw new Error("未登录")
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${authToken.value}`
+    }
+  })
+}
+
+// ------------------ 功能 ------------------
 function toggleSidebar() {
   sidebarOpen.value = !sidebarOpen.value
 }
 
-// 移动端点击目录后，如果目录下有图片才收起侧边栏
 async function handleMobileSelect(folder) {
   await handleSelect(folder)
-
-  // 移动端 && 目录下有图片
   if (isMobile.value && currentImages.value.length > 0) {
     sidebarOpen.value = false
   }
 }
 
-
-
-// 获取当前后端 API 地址
 function getApiBase() {
   const { protocol, hostname } = window.location
   const backendPort = 8000
@@ -144,9 +198,7 @@ function getApiBase() {
 async function generateThumbnails() {
   const base = getApiBase()
   try {
-    const res = await fetch(`${base}/resize`, {
-      method: 'POST'
-    })
+    const res = await authedFetch(`${base}/resize`, { method: 'POST' })
     const data = await res.json()
     alert('任务已触发')
   } catch (err) {
@@ -155,80 +207,86 @@ async function generateThumbnails() {
   }
 }
 
-// 调用后端 API 获取目录内容
-async function loadFolder(path = '') {
-  const base = getApiBase()
-  const res = await fetch(`${base}/api/list?dir=${encodeURIComponent(path)}`)
-  const data = await res.json()
-  return data.map(f => ({ ...f, expanded: false, children: [] }))
+async function loadFolder(path = "") {
+  try {
+    const base = getApiBase()
+    const res = await authedFetch(`${base}/api/list?dir=${encodeURIComponent(path)}`)
+    const data = await res.json()
+    return data.map(f => ({ ...f, expanded: false, children: [] }))
+  } catch (e) {
+    console.warn("未登录或无权限")
+    return []
+  }
 }
 
-// 初始化根目录
+function handleBack(e) {
+  if (isMobile.value) {
+    if (!sidebarOpen.value) {
+      e.preventDefault()
+      sidebarOpen.value = true
+      history.pushState(null, "", location.href)
+    }
+  }
+}
+
 onMounted(async () => {
-  folderTree.value = await loadFolder('')
+  if (authToken.value) {
+    folderTree.value = await loadFolder('')
+  }
   window.addEventListener('resize', onResize)
+  history.pushState(null, "", location.href)
+  window.addEventListener("popstate", handleBack)
 })
 
-// 监听窗口 resize
+onBeforeUnmount(() => {
+  window.removeEventListener("popstate", handleBack)
+})
+
 function onResize() {
   if (!isMobile.value) sidebarOpen.value = false
   columns.value = isMobile.value ? 2 : 5
 }
 
-// 编码图片 URL
 function encodeImageURL(path) {
   const base = getApiBase()
   return encodeURI(`${base}/images/${path}`)
 }
 
-// 根据切换开关刷新图片
 async function updateImages() {
   if (!currentPath.value) return
   const allItems = await loadFolder(currentPath.value)
-  const suffix = showA.value ? 'a.jpg' : 'b.jpg'
+  const suffix = showA.value ? 'a' : 'b'
+  const regex = new RegExp(`${suffix}\\.(jpg|jpeg|png|webp)$`, 'i')
   currentImages.value = allItems
-    .filter(item => item.type === 'file' && item.name.endsWith(suffix))
+    .filter(item => item.type === 'file' && regex.test(item.name))
     .map(file => encodeImageURL(file.path))
 }
 
-// 点击文件夹
 async function handleSelect(folder) {
   currentPath.value = folder.path
-
   const allItems = await loadFolder(folder.path)
   if (folder.type === 'folder' && folder.children.length === 0) {
     folder.children = allItems
       .filter(item => item.type === 'folder')
       .map(f => ({ ...f, expanded: false, children: [] }))
   }
-
   await updateImages()
 }
 
-// 监听开关切换，自动刷新
-watch(showA, () => {
-  updateImages()
-})
-
+// ------------------ 本地存储 ------------------
 watch(showA, (val) => {
   localStorage.setItem('showA', val)
   updateImages()
 })
-
 watch(perspectiveMode, (val) => {
   localStorage.setItem('perspectiveMode', val)
 })
-
 watch(columns, (val) => {
   localStorage.setItem('columns', val)
 })
-
-// 监听变化并存储到 localStorage
 watch(lowDataMode, (val) => {
   localStorage.setItem('lowDataMode', val)
 })
-
-
 </script>
 
 <style scoped>
@@ -243,8 +301,11 @@ watch(lowDataMode, (val) => {
   color: white;
 }
 .toolbar h2 {
-  margin: 0;
+  margin: 0;               /* 去掉默认外边距 */
   font-size: 20px;
+  line-height: 1;          /* 避免行高撑大 */
+  display: flex;
+  align-items: center;     /* 让里面的文字也居中 */
 }
 
 /* 工具栏控件容器 */
@@ -263,6 +324,7 @@ watch(lowDataMode, (val) => {
   color: white;
   cursor: pointer;
   margin-right: 8px;
+  transform: translateY(-2px);  /* 微调位置 */
 }
 
 /* 设置按钮 */
@@ -279,6 +341,15 @@ watch(lowDataMode, (val) => {
   color: #ddd;
 }
 
+/* 输入框样式 */
+.password-input {
+  width: 120px;
+  height: 28px;
+  padding: 0 6px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
 
 /* 半透明遮罩 */
 .overlay {
@@ -377,7 +448,39 @@ watch(lowDataMode, (val) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;      /* 为伪元素定位做准备 */
+  padding-left: 24px;      /* 给小圆点留位置 */
+  margin: 8px 0;           /* 每项之间垂直间距相等 */
 }
+
+/* 在每项前加一个圆点 */
+.panel-item::before {
+  content: "";
+  width: 12px;              /* 圆点大小 */
+  height: 12px;
+  border-radius: 50%;      /* 圆形 */
+  background-color: black; /* 蓝色圆点，可以换色 */
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%); /* 垂直居中 */
+}
+
+.password-input-underline {
+  width: 90%;
+  padding: 4px 0;
+  font-size: 14px;
+  border: none;
+  border-bottom: 2px solid #ccc; /* 下划线颜色 */
+  outline: none;
+  background: transparent;
+  color: black;
+}
+
+.password-input-underline:focus {
+  border-bottom-color: #007acc; /* 聚焦时下划线颜色 */
+}
+
 
 /* 滑块和下拉框统一样式 */
 .panel-item input[type="range"],
