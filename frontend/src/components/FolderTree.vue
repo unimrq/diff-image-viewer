@@ -15,8 +15,6 @@
 </template>
 
 <script setup>
-import { defineEmits } from 'vue'
-
 const props = defineProps({
   folders: { type: Array, required: true }
 })

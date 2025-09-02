@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from loguru import logger
 
-from backend.resize import generate_thumbnail
+from backend.resize import generate_thumbnail, process_folder
 from my_config import ROOT_DIR, THUMB_DIR, generator
 from urllib.parse import urlparse, unquote
 
@@ -127,3 +127,8 @@ async def regenerate(req: RegenRequest, background_tasks: BackgroundTasks):
 @app.get("/task_status/{task_id}")
 async def task_status(task_id: str):
     return {"task_id": task_id, "status": TASK_STATUS.get(task_id, "not found")}
+
+@app.post("/resize")
+async def trigger_resize(background_tasks: BackgroundTasks):
+    background_tasks.add_task(process_folder)
+    return {"status": "accepted"}
