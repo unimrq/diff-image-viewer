@@ -133,6 +133,7 @@ async function handleMobileSelect(folder) {
 }
 
 
+
 // 获取当前后端 API 地址
 function getApiBase() {
   const { protocol, hostname } = window.location
@@ -147,7 +148,7 @@ async function generateThumbnails() {
       method: 'POST'
     })
     const data = await res.json()
-    alert('任务已触发: ' + JSON.stringify(data))
+    alert('任务已触发')
   } catch (err) {
     console.error(err)
     alert('触发任务失败')
@@ -226,6 +227,8 @@ watch(columns, (val) => {
 watch(lowDataMode, (val) => {
   localStorage.setItem('lowDataMode', val)
 })
+
+
 </script>
 
 <style scoped>
@@ -265,6 +268,7 @@ watch(lowDataMode, (val) => {
 /* 设置按钮 */
 .settings-btn {
   font-size: 24px;
+  font-weight: 700;   /* 加粗，可根据需要调整 400/500/600/700 */
   background: none;
   border: none;
   color: white;
@@ -274,6 +278,7 @@ watch(lowDataMode, (val) => {
 .settings-btn:hover {
   color: #ddd;
 }
+
 
 /* 半透明遮罩 */
 .overlay {

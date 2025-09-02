@@ -54,19 +54,19 @@ function getThumbnail(imgUrl) {
 }
 
 .masonry {
-  column-gap: 10px;
+  column-gap: 4px;
 }
 
 .masonry-item {
   break-inside: avoid;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 }
 
 .masonry-item img {
   width: 100%;
   height: auto;
   display: block;
-  border-radius: 4px;
+  border-radius: 2px;
   cursor: pointer;
 }
 </style>

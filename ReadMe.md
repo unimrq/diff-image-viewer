@@ -24,10 +24,17 @@
 在 `backend/main.py` 中修改 `ROOT_DIR` 为你想浏览的图片文件夹，修改`THUMB_DIR`为指定的缩略图生成文件夹：  
 
 ```
-ROOT_DIR = Path(r"D:\AI-Photo\素材\diff").resolve()
-THUMB_DIR = Path(r"D:\AI-Photo\thumbnails").resolve()
+ROOT_DIR = Path(r"D:\AI-Photo\素材\diff").resolve() # 图片根目录
+THUMB_DIR = Path(r"D:\AI-Photo\thumbnails").resolve() # 缩略图生成目录
+
+generator = ImageGenerator(
+    server_address="127.0.0.1:8180", # comfyUI的地址
+    input_node="203", # 图片输入节点ID
+    output_node="794", # 图片输出节点ID
+    noise_nodes=["736", "555"], # 噪声节点ID
+)
 ```
-### 2. 执行图片压缩
+### 2. 执行图片压缩（可跳过）
 切换到 backend 文件夹并执行`resize.py`：
 
 ### 3. 安装前端依赖
@@ -37,19 +44,24 @@ npm install
 ```
 
 ### 4. 安装 Python 依赖
-在 Python 环境中执行：
+切换到backend文件夹，在 Python 环境中执行：
 ```
 pip install -r requirements.txt
 ```
 
 ### 5. 启动程序
-在 Python 环境中执行：
+切换到项目根目录，在 Python 环境中执行：
 ```
 python start_all.py
 ```
+访问
+```http://localhost:5173/```
+即可打开应用
 
-## 特别注意
+## ！！！特别注意！！！
 本仅能识别成对的差分图片，文件名需分别为 XXX+a.jpg 和 XXX+b.jpg，成对的两张图片文件在同一级目录下。如有特殊需求，可根据实际情况自行修改代码实现。
+示例：
+![img_2.png](res/img_2.png)
 
 ## 功能更新
 ### V1.0

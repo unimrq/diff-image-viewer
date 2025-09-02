@@ -3,7 +3,7 @@
     <!-- 工具栏 -->
     <div class="toolbar">
       <label>大小：{{ radius }}px</label>
-      <input type="range" min="20" max="150" v-model="radius" />
+      <input type="range" min="20" max="300" v-model="radius" />
       <button @click="clearATop">清除</button>
       <button @click="restoreATop">复原</button>
       <button @click="confirmRegenerate" :disabled="generating">
@@ -34,7 +34,7 @@ const loaded = { a: false, b: false }
 const generating = ref(false)
 const perspectiveMode = route.query.p === '1'  // true 或 false
 const lowDataMode = route.query.l === '1'    // 省流模式
-const radius = ref(perspectiveMode ? 150 : 50)  // 透视模式默认大一些
+const radius = ref(perspectiveMode ? 180 : 100)  // 透视模式默认大一些
 
 
 let scale = 1
@@ -94,7 +94,7 @@ function redraw() {
     ctx.save()
     ctx.beginPath()
     ctx.arc(mousePos.x + offsetX, mousePos.y + offsetY, radius.value, 0, Math.PI * 2)
-    ctx.fillStyle = 'rgba(0,0,0,0.3)'
+    ctx.fillStyle = perspectiveMode ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.3)'
     ctx.fill()
     ctx.restore()
   }
