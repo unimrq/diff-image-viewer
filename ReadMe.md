@@ -9,12 +9,12 @@
 ### 1. 文件浏览功能
 可以方便地浏览指定目录下的图片文件。  
 
-![img.png](res/img.png)
+![img.png](res/img.jpg)
 
 ### 2. 图片差分功能
 通过“擦除”操作查看两张图片的差异，支持调整橡皮擦大小，实时显示差异区域。  
 
-![img_1.png](res/img_1.png)
+![img_1.png](res/img_1.jpg)
 
 ---
 
@@ -61,7 +61,8 @@ python start_all.py
 ## ！！！特别注意！！！
 本仅能识别成对的差分图片，文件名需分别为 XXX+a.jpg 和 XXX+b.jpg，成对的两张图片文件在同一级目录下。如有特殊需求，可根据实际情况自行修改代码实现。
 示例：
-![img_2.png](res/img_2.png)
+
+![img_2.png](res/img_2.jpg)
 
 ## 功能更新
 ### V1.0

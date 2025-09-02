@@ -65,24 +65,20 @@
           </div>
 
           <!-- 6. 密码登录 -->
-          <div class="panel-item">
+          <div class="panel-item" >
             <span>访问密码</span>
             <button class="action-btn" @click="tryLogin">登录</button>
           </div>
 
-          <div style="display: flex; width: 100%; margin-top: 4px; margin-left: 24px; align-items: center;">
+          <div style="display: flex; width: 100%; margin-top: -8px; margin-left: 24px; align-items: center;">
             <input
-              type="password"
               v-model="password"
-              maxlength="20"
+              maxlength="8"
               class="password-input-underline"
               placeholder="请输入密码"
               style="margin-right: 8px;"
             />
-
           </div>
-
-
 
         </div>
       </div>
@@ -137,7 +133,7 @@ const columns = ref(Number(localStorage.getItem('columns')) || (isMobile.value ?
 const lowDataMode = ref(localStorage.getItem('lowDataMode') === 'true')
 
 // 密码 & token
-const password = ref(localStorage.getItem('password') === "")
+const password = ref('')
 const authToken = ref(localStorage.getItem("authToken") || "")
 
 // ------------------ 登录鉴权 ------------------
@@ -155,8 +151,6 @@ async function tryLogin() {
       localStorage.setItem("authToken", data.token)
       alert("登录成功")
       window.location.reload()
-      localStorage.setItem('password', password.value)
-      settingsOpen.value = false
     } else {
       alert("密码错误")
     }
@@ -368,7 +362,7 @@ watch(lowDataMode, (val) => {
   height: calc(100vh - 60px);
 }
 .sidebar {
-  width: 250px;
+  width: 350px;
   border-right: 1px solid #ddd;
   overflow-y: auto;
   padding: 10px 0;
@@ -431,7 +425,7 @@ watch(lowDataMode, (val) => {
 .close-btn {
   border: none;
   background: none;
-  font-size: 18px;
+  font-size: 24px;
   cursor: pointer;
   color: #555;
 }
@@ -459,7 +453,7 @@ watch(lowDataMode, (val) => {
   width: 12px;              /* 圆点大小 */
   height: 12px;
   border-radius: 50%;      /* 圆形 */
-  background-color: black; /* 蓝色圆点，可以换色 */
+  background-color: #424242; /* 蓝色圆点，可以换色 */
   position: absolute;
   left: 0;
   top: 50%;

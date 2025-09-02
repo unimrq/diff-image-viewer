@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, onBeforeUnmount } from 'vue'
+import { ref, onMounted, watch, onBeforeUnmount, computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const canvas = ref(null)
@@ -34,8 +34,14 @@ const loaded = { a: false, b: false }
 const generating = ref(false)
 const perspectiveMode = route.query.p === '1'  // true 或 false
 const lowDataMode = route.query.l === '1'    // 省流模式
-const radius = ref(perspectiveMode ? 180 : 100)  // 透视模式默认大一些
+// 假设 isMobile 是一个 ref 或 reactive 状态
+const isMobile = computed(() => window.innerWidth < 768)
 
+const radius = ref(
+  isMobile.value
+    ? (perspectiveMode ? 180 : 100)  // 移动端
+    : (perspectiveMode ? 300 : 150)  // 非移动端
+)
 
 let scale = 1
 let mousePos = null
