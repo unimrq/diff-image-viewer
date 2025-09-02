@@ -34,7 +34,7 @@ generator = ImageGenerator(
     noise_nodes=["736", "555"], # 噪声节点ID
 )
 ```
-### 2. 执行图片压缩（可跳过）
+### 2. 执行图片压缩
 切换到 backend 文件夹并执行`resize.py`：
 
 ### 3. 安装前端依赖
