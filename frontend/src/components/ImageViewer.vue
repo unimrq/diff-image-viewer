@@ -5,7 +5,6 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue'
 const props = defineProps({ imgPath: String })
 const decodedImgPath = decodeURIComponent(props.imgPath)
 </script>

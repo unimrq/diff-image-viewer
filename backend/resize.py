@@ -1,7 +1,6 @@
 from pathlib import Path
 from PIL import Image
-from main import ROOT_DIR, THUMB_DIR
-
+from my_config import ROOT_DIR, THUMB_DIR
 
 THUMB_DIR.mkdir(exist_ok=True)
 

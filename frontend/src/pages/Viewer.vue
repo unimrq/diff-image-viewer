@@ -6,9 +6,14 @@
       <input type="range" min="5" max="100" v-model="radius" />
       <button @click="clearATop">清除 a 图</button>
       <button @click="restoreATop">复原 a 图</button>
+      <button @click="regenerate" :disabled="generating">  {{ generating ? '生成中...' : '重新生成' }}</button>
     </div>
     <!-- 差分 Canvas -->
     <canvas ref="canvas"></canvas>
+    <!-- 提示框 -->
+    <div v-if="toast.show" class="toast" :class="toast.type">
+      {{ toast.message }}
+    </div>
   </div>
 </template>
 
@@ -24,11 +29,18 @@ const imgB = new Image()
 const offCanvas = document.createElement('canvas')
 const offCtx = offCanvas.getContext('2d')
 const loaded = { a: false, b: false }
-
+const generating = ref(false)
 const radius = ref(50)
 let scale = 1
 let mousePos = null
 let drawing = false
+
+// 提示框状态
+const toast = ref({
+  show: false,
+  message: '',
+  type: 'info'
+})
 
 function getXY(e) {
   if (!canvas.value || !imgB.width || !imgB.height) return { x: 0, y: 0 }
@@ -195,6 +207,88 @@ function onResize() {
   updateScale()
   redraw()
 }
+
+function showToast(message, type = 'info', duration = 3000) {
+  toast.value = { show: true, message, type }
+  if (duration > 0) {
+    setTimeout(() => {
+      toast.value.show = false
+    }, duration)
+  }
+}
+
+
+async function regenerate() {
+  if (generating.value) return
+    generating.value = true
+
+  const aPath = route.params.imgPath   // a 图路径
+  const bPath = aPath.replace(/a(\.jpg|\.png)$/i, 'b$1')  // 对应的 b 图路径
+
+  try {
+    const backendUrl = `http://${window.location.hostname}:8000/regenerate`
+
+    const res = await fetch(backendUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        aPath: aPath,
+        bPath: bPath
+      })
+    })
+
+    if (!res.ok) {
+      const errText = await res.text()
+      showToast(`失败：${errText}`, 'error')
+      generating.value = false
+      return
+    }
+
+    const data = await res.json()
+    if (data.status !== 'accepted') {
+      showToast(`提交任务失败：${data.detail || '未知错误'}`, 'error')
+      generating.value = false
+      return
+    }
+
+    showToast('任务已提交，正在生成...', 'info')
+    pollTaskStatus(data.task_id, bPath)
+
+  } catch (err) {
+    showToast(`请求出错：${err.message}`, 'error')
+    generating.value = false
+  }
+}
+
+function pollTaskStatus(taskId, bPath) {
+  const backendUrl = `http://${window.location.hostname}:8000/task_status/${taskId}`
+  const interval = setInterval(async () => {
+    try {
+      const res = await fetch(backendUrl)
+      const data = await res.json()
+      const status = data.status
+
+      if (status === 'done') {
+        clearInterval(interval)
+        showToast('生成完成！', 'success')
+        // 强制刷新 b 图
+        imgB.src = bPath + '?t=' + Date.now()
+        generating.value = false
+      } else if (status.startsWith('error')) {
+        clearInterval(interval)
+        showToast(`生成失败：${status}`, 'error')
+        generating.value = false
+      }
+    } catch (err) {
+      clearInterval(interval)
+      showToast(`查询任务状态出错：${err.message}`, 'error')
+      generating.value = false
+    }
+  }, 2000) // 每 2 秒查询一次
+}
+
+
+
 </script>
 
 <style scoped>
@@ -224,5 +318,26 @@ canvas {
   display: block;
   margin: auto;
   cursor: crosshair;
+}
+/* 提示框样式 */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  opacity: 0.9;
+}
+.toast.success {
+  background: #4caf50;
+}
+.toast.error {
+  background: #f44336;
+}
+.toast.info {
+  background: #2196f3;
 }
 </style>

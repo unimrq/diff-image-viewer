@@ -1,0 +1,1187 @@
+{
+  "6": {
+    "inputs": {
+      "text": [
+        "511",
+        0
+      ],
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "776",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "39": {
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "加载VAE"
+    }
+  },
+  "42": {
+    "inputs": {
+      "image": [
+        "593",
+        0
+      ]
+    },
+    "class_type": "FluxKontextImageScale",
+    "_meta": {
+      "title": "FluxKontextImageScale"
+    }
+  },
+  "124": {
+    "inputs": {
+      "pixels": [
+        "42",
+        0
+      ],
+      "vae": [
+        "39",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE编码"
+    }
+  },
+  "189": {
+    "inputs": {
+      "model_path": "svdq-int4_r32-flux.1-kontext-dev.safetensors",
+      "cache_threshold": 0.15000000000000002,
+      "attention": "nunchaku-fp16",
+      "cpu_offload": "enable",
+      "device_id": 0,
+      "data_type": "bfloat16",
+      "i2f_mode": "enabled"
+    },
+    "class_type": "NunchakuFluxDiTLoader",
+    "_meta": {
+      "title": "Nunchaku FLUX DiT Loader"
+    }
+  },
+  "203": {
+    "inputs": {
+      "image": "4 (1).jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "加载图像"
+    }
+  },
+  "207": {
+    "inputs": {
+      "samples": [
+        "215",
+        0
+      ],
+      "vae": [
+        "39",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "215": {
+    "inputs": {
+      "seed": [
+        "555",
+        0
+      ],
+      "steps": 20,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "636",
+        0
+      ],
+      "positive": [
+        "761",
+        0
+      ],
+      "negative": [
+        "763",
+        0
+      ],
+      "latent_image": [
+        "124",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "K采样器"
+    }
+  },
+  "236": {
+    "inputs": {
+      "rgthree_comparer": {
+        "images": [
+          {
+            "name": "A",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_tigtu_00285_.png&type=temp&subfolder=&rand=0.403508883582288"
+          },
+          {
+            "name": "B",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_tigtu_00286_.png&type=temp&subfolder=&rand=0.8126464228974472"
+          }
+        ]
+      },
+      "image_a": [
+        "207",
+        0
+      ],
+      "image_b": [
+        "42",
+        0
+      ]
+    },
+    "class_type": "Image Comparer (rgthree)",
+    "_meta": {
+      "title": "Image Comparer (rgthree)"
+    }
+  },
+  "271": {
+    "inputs": {
+      "ckpt_name": "fantasticmix_k2.safetensors",
+      "vae_name": "vae-ft-mse-840000-ema-pruned.safetensors",
+      "clip_skip": -1,
+      "lora_name": "None",
+      "lora_model_strength": 0.4,
+      "lora_clip_strength": 1,
+      "positive": [
+        "734",
+        0
+      ],
+      "negative": "(worst quality, low quality, normal quality:1.2), lowres, blurry, bad anatomy, bad hand, text, average quality, extra_arms, extra_fingers, extra_hands, artist_name, deformed, distorted, disfigured, ugly, deformed, blurry, noisy, watermark,",
+      "token_normalization": "none",
+      "weight_interpretation": "comfy",
+      "empty_latent_width": 512,
+      "empty_latent_height": 512,
+      "batch_size": 1,
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      }
+    },
+    "class_type": "Efficient Loader",
+    "_meta": {
+      "title": "Efficient Loader"
+    }
+  },
+  "272": {
+    "inputs": {
+      "segs": [
+        "337",
+        0
+      ]
+    },
+    "class_type": "SegsToCombinedMask",
+    "_meta": {
+      "title": "SEGS to MASK (combined)"
+    }
+  },
+  "275": {
+    "inputs": {
+      "masks": [
+        "272",
+        0
+      ]
+    },
+    "class_type": "Mask Fill Holes",
+    "_meta": {
+      "title": "Mask Fill Holes"
+    }
+  },
+  "276": {
+    "inputs": {
+      "mask": [
+        "760",
+        0
+      ]
+    },
+    "class_type": "MaskToImage",
+    "_meta": {
+      "title": "遮罩转换为图像"
+    }
+  },
+  "277": {
+    "inputs": {
+      "segs": [
+        "324",
+        0
+      ]
+    },
+    "class_type": "ImpactIsNotEmptySEGS",
+    "_meta": {
+      "title": "SEGS isn't Empty"
+    }
+  },
+  "281": {
+    "inputs": {
+      "transparency": 0.7000000000000001,
+      "offset_x": 0,
+      "offset_y": 0,
+      "rotation_angle": 0,
+      "overlay_scale_factor": 1,
+      "back_image": [
+        "283",
+        0
+      ],
+      "overlay_image": [
+        "276",
+        0
+      ]
+    },
+    "class_type": "CR Overlay Transparent Image",
+    "_meta": {
+      "title": "🌁 CR Overlay Transparent Image"
+    }
+  },
+  "282": {
+    "inputs": {
+      "mask": [
+        "380",
+        0
+      ]
+    },
+    "class_type": "InvertMask",
+    "_meta": {
+      "title": "反转遮罩"
+    }
+  },
+  "283": {
+    "inputs": {
+      "padding_left": 20,
+      "padding_right": 20,
+      "padding_top": 20,
+      "padding_bottom": 20,
+      "return_list": false,
+      "image": [
+        "528",
+        0
+      ],
+      "mask": [
+        "307",
+        0
+      ]
+    },
+    "class_type": "Bounded Image Crop with Mask",
+    "_meta": {
+      "title": "Bounded Image Crop with Mask"
+    }
+  },
+  "285": {
+    "inputs": {
+      "blend_factor": 1,
+      "feathering": 0,
+      "target": [
+        "378",
+        0
+      ],
+      "target_bounds": [
+        "283",
+        1
+      ],
+      "source": [
+        "276",
+        0
+      ]
+    },
+    "class_type": "Bounded Image Blend",
+    "_meta": {
+      "title": "Bounded Image Blend"
+    }
+  },
+  "288": {
+    "inputs": {
+      "images": [
+        "281",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "预览图像"
+    }
+  },
+  "305": {
+    "inputs": {
+      "model_name": "segm/face_yolov8n-seg2_60.pt"
+    },
+    "class_type": "UltralyticsDetectorProvider",
+    "_meta": {
+      "title": "UltralyticsDetectorProvider"
+    }
+  },
+  "306": {
+    "inputs": {
+      "segs": [
+        "324",
+        0
+      ]
+    },
+    "class_type": "SegsToCombinedMask",
+    "_meta": {
+      "title": "SEGS to MASK (combined)"
+    }
+  },
+  "307": {
+    "inputs": {
+      "boolean": [
+        "277",
+        0
+      ],
+      "on_true": [
+        "306",
+        0
+      ],
+      "on_false": [
+        "282",
+        0
+      ]
+    },
+    "class_type": "Switch any [Crystools]",
+    "_meta": {
+      "title": "🪛 Switch any"
+    }
+  },
+  "308": {
+    "inputs": {
+      "model_name": "bbox/face_yolov8m.pt"
+    },
+    "class_type": "UltralyticsDetectorProvider",
+    "_meta": {
+      "title": "UltralyticsDetectorProvider"
+    }
+  },
+  "324": {
+    "inputs": {
+      "threshold": 0.3,
+      "dilation": 10,
+      "crop_factor": 3,
+      "drop_size": 10,
+      "labels": "all",
+      "speak_and_recognation": true,
+      "bbox_detector": [
+        "308",
+        0
+      ],
+      "image": [
+        "528",
+        0
+      ]
+    },
+    "class_type": "BboxDetectorSEGS",
+    "_meta": {
+      "title": "BBOX Detector (SEGS)"
+    }
+  },
+  "337": {
+    "inputs": {
+      "threshold": 0.1,
+      "dilation": 0,
+      "crop_factor": 3,
+      "drop_size": 10,
+      "labels": "all",
+      "speak_and_recognation": true,
+      "segm_detector": [
+        "305",
+        1
+      ],
+      "image": [
+        "283",
+        0
+      ]
+    },
+    "class_type": "SegmDetectorSEGS",
+    "_meta": {
+      "title": "SEGM Detector (SEGS)"
+    }
+  },
+  "371": {
+    "inputs": {
+      "mask": [
+        "203",
+        1
+      ]
+    },
+    "class_type": "MaskToImage",
+    "_meta": {
+      "title": "遮罩转换为图像"
+    }
+  },
+  "375": {
+    "inputs": {
+      "image": [
+        "42",
+        0
+      ]
+    },
+    "class_type": "Get resolution [Crystools]",
+    "_meta": {
+      "title": "🪛 Get resolution"
+    }
+  },
+  "378": {
+    "inputs": {
+      "width": [
+        "631",
+        0
+      ],
+      "height": [
+        "631",
+        1
+      ],
+      "red": 0,
+      "green": 0,
+      "blue": 0
+    },
+    "class_type": "Image Blank",
+    "_meta": {
+      "title": "Image Blank"
+    }
+  },
+  "380": {
+    "inputs": {
+      "channel": "red",
+      "image": [
+        "378",
+        0
+      ]
+    },
+    "class_type": "ImageToMask",
+    "_meta": {
+      "title": "图像转换为遮罩"
+    }
+  },
+  "382": {
+    "inputs": {
+      "seed": [
+        "736",
+        0
+      ],
+      "steps": 15,
+      "cfg": 7,
+      "sampler_name": "dpmpp_2m",
+      "scheduler": "karras",
+      "denoise": 0.32,
+      "preview_method": "auto",
+      "vae_decode": "true",
+      "model": [
+        "271",
+        0
+      ],
+      "positive": [
+        "271",
+        1
+      ],
+      "negative": [
+        "271",
+        2
+      ],
+      "latent_image": [
+        "400",
+        0
+      ],
+      "optional_vae": [
+        "271",
+        4
+      ]
+    },
+    "class_type": "KSampler (Efficient)",
+    "_meta": {
+      "title": "KSampler (Efficient)"
+    }
+  },
+  "383": {
+    "inputs": {
+      "pixels": [
+        "528",
+        0
+      ],
+      "vae": [
+        "271",
+        4
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE编码"
+    }
+  },
+  "395": {
+    "inputs": {
+      "transparency": 0.30000000000000004,
+      "offset_x": 0,
+      "offset_y": 0,
+      "rotation_angle": 0,
+      "overlay_scale_factor": 1,
+      "back_image": [
+        "528",
+        0
+      ],
+      "overlay_image": [
+        "470",
+        0
+      ]
+    },
+    "class_type": "CR Overlay Transparent Image",
+    "_meta": {
+      "title": "🌁 CR Overlay Transparent Image"
+    }
+  },
+  "400": {
+    "inputs": {
+      "samples": [
+        "383",
+        0
+      ],
+      "mask": [
+        "412",
+        0
+      ]
+    },
+    "class_type": "SetLatentNoiseMask",
+    "_meta": {
+      "title": "设置Latent噪波遮罩"
+    }
+  },
+  "402": {
+    "inputs": {
+      "op": "greater",
+      "clamp_result": "yes",
+      "round_result": "no",
+      "image1": [
+        "408",
+        0
+      ],
+      "image2": [
+        "405",
+        0
+      ]
+    },
+    "class_type": "Combine Masks",
+    "_meta": {
+      "title": "Combine Masks"
+    }
+  },
+  "405": {
+    "inputs": {
+      "any_01": [
+        "285",
+        0
+      ],
+      "any_02": [
+        "378",
+        0
+      ]
+    },
+    "class_type": "Any Switch (rgthree)",
+    "_meta": {
+      "title": "Any Switch (rgthree)"
+    }
+  },
+  "408": {
+    "inputs": {
+      "any_01": [
+        "470",
+        0
+      ],
+      "any_02": [
+        "378",
+        0
+      ]
+    },
+    "class_type": "Any Switch (rgthree)",
+    "_meta": {
+      "title": "Any Switch (rgthree)"
+    }
+  },
+  "411": {
+    "inputs": {
+      "images": [
+        "423",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "预览图像"
+    }
+  },
+  "412": {
+    "inputs": {
+      "method": "intensity",
+      "image": [
+        "423",
+        0
+      ]
+    },
+    "class_type": "Image To Mask",
+    "_meta": {
+      "title": "Image To Mask"
+    }
+  },
+  "423": {
+    "inputs": {
+      "op": "add",
+      "clamp_result": "yes",
+      "round_result": "no",
+      "image1": [
+        "402",
+        0
+      ],
+      "image2": [
+        "633",
+        0
+      ]
+    },
+    "class_type": "Combine Masks",
+    "_meta": {
+      "title": "Combine Masks"
+    }
+  },
+  "428": {
+    "inputs": {
+      "upscale_method": "lanczos",
+      "width": [
+        "375",
+        0
+      ],
+      "height": [
+        "375",
+        1
+      ],
+      "crop": "disabled",
+      "image": [
+        "371",
+        0
+      ]
+    },
+    "class_type": "ImageScale",
+    "_meta": {
+      "title": "缩放图像"
+    }
+  },
+  "429": {
+    "inputs": {
+      "image1": [
+        "528",
+        0
+      ],
+      "image2": [
+        "382",
+        5
+      ],
+      "mask": [
+        "423",
+        0
+      ]
+    },
+    "class_type": "Mix Images By Mask",
+    "_meta": {
+      "title": "Mix Images By Mask"
+    }
+  },
+  "465": {
+    "inputs": {
+      "threshold": 0.20000000000000004,
+      "dilation": 15,
+      "crop_factor": 3,
+      "drop_size": 1,
+      "labels": "all",
+      "speak_and_recognation": true,
+      "segm_detector": [
+        "466",
+        1
+      ],
+      "image": [
+        "528",
+        0
+      ]
+    },
+    "class_type": "SegmDetectorSEGS",
+    "_meta": {
+      "title": "SEGM Detector (SEGS)"
+    }
+  },
+  "466": {
+    "inputs": {
+      "model_name": "segm/skin_yolov8m-seg_400.pt"
+    },
+    "class_type": "UltralyticsDetectorProvider",
+    "_meta": {
+      "title": "UltralyticsDetectorProvider"
+    }
+  },
+  "468": {
+    "inputs": {
+      "segs": [
+        "465",
+        0
+      ]
+    },
+    "class_type": "SegsToCombinedMask",
+    "_meta": {
+      "title": "SEGS to MASK (combined)"
+    }
+  },
+  "469": {
+    "inputs": {
+      "masks": [
+        "468",
+        0
+      ]
+    },
+    "class_type": "Mask Fill Holes",
+    "_meta": {
+      "title": "Mask Fill Holes"
+    }
+  },
+  "470": {
+    "inputs": {
+      "mask": [
+        "469",
+        0
+      ]
+    },
+    "class_type": "MaskToImage",
+    "_meta": {
+      "title": "遮罩转换为图像"
+    }
+  },
+  "471": {
+    "inputs": {
+      "images": [
+        "395",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "预览图像"
+    }
+  },
+  "494": {
+    "inputs": {
+      "any_01": [
+        "429",
+        0
+      ],
+      "any_02": [
+        "528",
+        0
+      ]
+    },
+    "class_type": "Any Switch (rgthree)",
+    "_meta": {
+      "title": "Any Switch (rgthree)"
+    }
+  },
+  "498": {
+    "inputs": {
+      "any_02": [
+        "754",
+        0
+      ]
+    },
+    "class_type": "Any Switch (rgthree)",
+    "_meta": {
+      "title": "Any Switch (rgthree)"
+    }
+  },
+  "511": {
+    "inputs": {
+      "prompt": "change clothes to nothing",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      }
+    },
+    "class_type": "CR Prompt Text",
+    "_meta": {
+      "title": "⚙️ CR Prompt Text"
+    }
+  },
+  "528": {
+    "inputs": {
+      "any_02": [
+        "498",
+        0
+      ]
+    },
+    "class_type": "Any Switch (rgthree)",
+    "_meta": {
+      "title": "Any Switch (rgthree)"
+    }
+  },
+  "555": {
+    "inputs": {
+      "seed": 374131995572641
+    },
+    "class_type": "easy seed",
+    "_meta": {
+      "title": "随机种1"
+    }
+  },
+  "566": {
+    "inputs": {
+      "any_02": [
+        "494",
+        0
+      ]
+    },
+    "class_type": "Any Switch (rgthree)",
+    "_meta": {
+      "title": "Any Switch (rgthree)"
+    }
+  },
+  "582": {
+    "inputs": {
+      "output_path": "",
+      "filename_prefix": [
+        "599",
+        0
+      ],
+      "filename_delimiter": "_",
+      "filename_number_padding": 4,
+      "filename_number_start": "false",
+      "extension": "jpg",
+      "dpi": 300,
+      "quality": 100,
+      "optimize_image": "false",
+      "lossless_webp": "false",
+      "overwrite_mode": "false",
+      "show_history": "false",
+      "show_history_by_prefix": "false",
+      "embed_workflow": "false",
+      "show_previews": "false",
+      "images": [
+        "566",
+        0
+      ]
+    },
+    "class_type": "Image Save",
+    "_meta": {
+      "title": "Image Save"
+    }
+  },
+  "593": {
+    "inputs": {
+      "any_02": [
+        "203",
+        0
+      ]
+    },
+    "class_type": "Any Switch (rgthree)",
+    "_meta": {
+      "title": "Any Switch (rgthree)"
+    }
+  },
+  "596": {
+    "inputs": {
+      "text": "ComfyUI",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      }
+    },
+    "class_type": "CR Text",
+    "_meta": {
+      "title": "🔤 CR Text"
+    }
+  },
+  "597": {
+    "inputs": {
+      "any_02": [
+        "596",
+        0
+      ]
+    },
+    "class_type": "Any Switch (rgthree)",
+    "_meta": {
+      "title": "Any Switch (rgthree)"
+    }
+  },
+  "599": {
+    "inputs": {
+      "PreviewTextNode_0": "",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "text": [
+        "597",
+        0
+      ]
+    },
+    "class_type": "PreviewTextNode",
+    "_meta": {
+      "title": "Preview Text Node"
+    }
+  },
+  "631": {
+    "inputs": {
+      "image": [
+        "207",
+        0
+      ]
+    },
+    "class_type": "Get resolution [Crystools]",
+    "_meta": {
+      "title": "🪛 Get resolution"
+    }
+  },
+  "633": {
+    "inputs": {
+      "upscale_method": "lanczos",
+      "width": [
+        "634",
+        0
+      ],
+      "height": [
+        "634",
+        1
+      ],
+      "crop": "disabled",
+      "image": [
+        "428",
+        0
+      ]
+    },
+    "class_type": "ImageScale",
+    "_meta": {
+      "title": "缩放图像"
+    }
+  },
+  "634": {
+    "inputs": {
+      "image": [
+        "402",
+        0
+      ]
+    },
+    "class_type": "Get resolution [Crystools]",
+    "_meta": {
+      "title": "🪛 Get resolution"
+    }
+  },
+  "636": {
+    "inputs": {
+      "lora_name": "change_clothes_to_nothing_000009600.safetensors",
+      "lora_strength": 1.0000000000000002,
+      "model": [
+        "189",
+        0
+      ]
+    },
+    "class_type": "NunchakuFluxLoraLoader",
+    "_meta": {
+      "title": "Nunchaku FLUX LoRA Loader"
+    }
+  },
+  "731": {
+    "inputs": {
+      "rgthree_comparer": {
+        "images": [
+          {
+            "name": "A",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_subcn_00009_.png&type=temp&subfolder=&rand=0.23035044117869796"
+          },
+          {
+            "name": "B",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_subcn_00010_.png&type=temp&subfolder=&rand=0.0686973311966812"
+          }
+        ]
+      },
+      "image_a": [
+        "494",
+        0
+      ],
+      "image_b": [
+        "528",
+        0
+      ]
+    },
+    "class_type": "Image Comparer (rgthree)",
+    "_meta": {
+      "title": "Image Comparer (rgthree)"
+    }
+  },
+  "734": {
+    "inputs": {
+      "prompt": "1girl, naked, nude, completely_nude, \nmasterpiece, best_quality, highly_detailed, nsfw, ",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      }
+    },
+    "class_type": "CR Prompt Text",
+    "_meta": {
+      "title": "⚙️ CR Prompt Text"
+    }
+  },
+  "736": {
+    "inputs": {
+      "seed": 880277585887422
+    },
+    "class_type": "easy seed",
+    "_meta": {
+      "title": "随机种"
+    }
+  },
+  "754": {
+    "inputs": {
+      "any_02": [
+        "207",
+        0
+      ]
+    },
+    "class_type": "Any Switch (rgthree)",
+    "_meta": {
+      "title": "Any Switch (rgthree)"
+    }
+  },
+  "760": {
+    "inputs": {
+      "expand": 10,
+      "tapered_corners": true,
+      "mask": [
+        "275",
+        0
+      ]
+    },
+    "class_type": "GrowMask",
+    "_meta": {
+      "title": "扩展遮罩"
+    }
+  },
+  "761": {
+    "inputs": {
+      "guidance": 2.5,
+      "conditioning": [
+        "762",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "Flux引导"
+    }
+  },
+  "762": {
+    "inputs": {
+      "conditioning": [
+        "6",
+        0
+      ],
+      "latent": [
+        "124",
+        0
+      ]
+    },
+    "class_type": "ReferenceLatent",
+    "_meta": {
+      "title": "ReferenceLatent"
+    }
+  },
+  "763": {
+    "inputs": {
+      "conditioning": [
+        "6",
+        0
+      ]
+    },
+    "class_type": "ConditioningZeroOut",
+    "_meta": {
+      "title": "条件零化"
+    }
+  },
+  "776": {
+    "inputs": {
+      "model_type": "flux.1",
+      "text_encoder1": "clip_l.safetensors",
+      "text_encoder2": "t5xxl_fp8_e4m3fn_scaled.safetensors",
+      "t5_min_length": 512
+    },
+    "class_type": "NunchakuTextEncoderLoaderV2",
+    "_meta": {
+      "title": "Nunchaku Text Encoder Loader V2"
+    }
+  },
+  "777": {
+    "inputs": {
+      "any_02": [
+        "189",
+        0
+      ]
+    },
+    "class_type": "Any Switch (rgthree)",
+    "_meta": {
+      "title": "Any Switch (rgthree)"
+    }
+  },
+  "794": {
+    "inputs": {
+      "rgthree_comparer": {
+        "images": [
+          {
+            "name": "A",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_ceufp_00007_.png&type=temp&subfolder=&rand=0.27492630899468407"
+          },
+          {
+            "name": "B",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_ceufp_00008_.png&type=temp&subfolder=&rand=0.8220613619648617"
+          }
+        ]
+      },
+      "image_a": [
+        "42",
+        0
+      ],
+      "image_b": [
+        "566",
+        0
+      ]
+    },
+    "class_type": "Image Comparer (rgthree)",
+    "_meta": {
+      "title": "Image Comparer (rgthree)"
+    }
+  }
+}

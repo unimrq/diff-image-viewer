@@ -59,3 +59,6 @@ python start_all.py
 ### V1.1
 1. 适配移动端；
 2. 修正了一些界面上的显示bug；
+### V1.2
+1. 新增重新生成b图功能，通过comfyui的API实现；
+2. 注意：该工作流必须已经在comfyui中可用，才能调用API出图；
