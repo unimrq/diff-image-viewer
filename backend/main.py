@@ -6,13 +6,17 @@ from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from loguru import logger
-
+from PIL import Image
 from backend.resize import generate_thumbnail, process_folder
 from my_config import ROOT_DIR, THUMB_DIR, generator
 from urllib.parse import urlparse, unquote
 
 
 app = FastAPI()
+
+
+CACHE_DIR = Path(__file__).parent / "cache"
+CACHE_DIR.mkdir(exist_ok=True, parents=True)
 
 # -----------------------
 # CORS 设置（允许前端访问所有接口）
@@ -132,3 +136,49 @@ async def task_status(task_id: str):
 async def trigger_resize(background_tasks: BackgroundTasks):
     background_tasks.add_task(process_folder)
     return {"status": "accepted"}
+
+
+@app.post("/compress")
+async def compress_images(req: RegenRequest):
+    """
+    前端传 aPath 和 bPath（原图路径），服务端生成压缩图返回 URL
+    """
+    # ---------- 解析路径 ----------
+    parsed_a = urlparse(req.aPath)
+    rel_a = unquote(parsed_a.path)
+    parsed_b = urlparse(req.bPath)
+    rel_b = unquote(parsed_b.path)
+
+    file_path_a = ROOT_DIR / rel_a.split("/images/")[-1]
+    file_path_b = ROOT_DIR / rel_b.split("/images/")[-1]
+
+    if not file_path_a.exists() or not file_path_b.exists():
+        raise HTTPException(status_code=400, detail="原图不存在")
+
+    # ---------- 压缩后的路径 ----------
+    a_compress = CACHE_DIR / file_path_a.name
+    b_compress = CACHE_DIR / file_path_b.name
+
+    # ---------- 压缩函数 ----------
+    def compress_image(src: Path, dst: Path, max_size=(800, 800), quality=50):
+        with Image.open(src) as im:
+            im.thumbnail(max_size)  # 保持比例缩小
+            im.save(dst, quality=quality)
+
+    compress_image(file_path_a, a_compress)
+    compress_image(file_path_b, b_compress)
+
+    # ---------- 返回前端可访问 URL ----------
+    # 假设前端可以通过 /cache/xxx.jpg 访问
+    return {
+        "aCompressed": f"/cache/{a_compress.name}",
+        "bCompressed": f"/cache/{b_compress.name}"
+    }
+
+# 提供压缩图静态访问
+@app.get("/cache/{filename}")
+def serve_cache_image(filename: str):
+    file_path = CACHE_DIR / filename
+    if not file_path.exists():
+        return JSONResponse({"error": "File not found"}, status_code=404)
+    return FileResponse(file_path, headers={"Access-Control-Allow-Origin": "*"})

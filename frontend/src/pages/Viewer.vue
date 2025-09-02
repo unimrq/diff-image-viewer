@@ -2,11 +2,13 @@
   <div class="viewer">
     <!-- 工具栏 -->
     <div class="toolbar">
-      <label>橡皮擦大小：{{ radius }}px</label>
-      <input type="range" min="5" max="100" v-model="radius" />
-      <button @click="clearATop">清除 a 图</button>
-      <button @click="restoreATop">复原 a 图</button>
-      <button @click="regenerate" :disabled="generating">  {{ generating ? '生成中...' : '重新生成' }}</button>
+      <label>大小：{{ radius }}px</label>
+      <input type="range" min="20" max="150" v-model="radius" />
+      <button @click="clearATop">清除</button>
+      <button @click="restoreATop">复原</button>
+      <button @click="confirmRegenerate" :disabled="generating">
+        {{ generating ? '生成中...' : '重新生成' }}
+      </button>
     </div>
     <!-- 差分 Canvas -->
     <canvas ref="canvas"></canvas>
@@ -30,7 +32,11 @@ const offCanvas = document.createElement('canvas')
 const offCtx = offCanvas.getContext('2d')
 const loaded = { a: false, b: false }
 const generating = ref(false)
-const radius = ref(50)
+const perspectiveMode = route.query.p === '1'  // true 或 false
+const lowDataMode = route.query.l === '1'    // 省流模式
+const radius = ref(perspectiveMode ? 150 : 50)  // 透视模式默认大一些
+
+
 let scale = 1
 let mousePos = null
 let drawing = false
@@ -67,10 +73,21 @@ function redraw() {
   const offsetX = (c.width - imgB.width * scale) / 2
   const offsetY = (c.height - imgB.height * scale) / 2
 
-  // 绘制底图 B
+  // 先画 B 底图
   ctx.drawImage(imgB, offsetX, offsetY, imgB.width * scale, imgB.height * scale)
-  // 绘制顶图 A
+
+  // 再画 A 顶图
   ctx.drawImage(offCanvas, offsetX, offsetY, offCanvas.width * scale, offCanvas.height * scale)
+
+  // 如果是透视模式：在圆形区域挖掉 A，再显示 B
+  if (perspectiveMode && mousePos) {
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(mousePos.x + offsetX, mousePos.y + offsetY, radius.value, 0, Math.PI * 2)
+    ctx.clip()
+    ctx.drawImage(imgB, offsetX, offsetY, imgB.width * scale, imgB.height * scale)
+    ctx.restore()
+  }
 
   // 鼠标半透明圆
   if (mousePos) {
@@ -82,6 +99,7 @@ function redraw() {
     ctx.restore()
   }
 }
+
 
 function updateScale() {
   if (!canvas.value || !imgB.width || !imgB.height) return
@@ -139,17 +157,26 @@ function handleDraw(pos) {
   if (!pos) return
   mousePos = pos
 
-  if (drawing && loaded.a && loaded.b) {
+  if (!drawing || !loaded.a || !loaded.b) {
+    redraw()
+    return
+  }
+
+  if (perspectiveMode) {
+    // 透视模式：不操作 offCanvas，只刷新
+    redraw()
+  } else {
+    // 原本擦除逻辑
     offCtx.save()
     offCtx.globalCompositeOperation = 'destination-out'
     offCtx.beginPath()
     offCtx.arc(pos.x / scale, pos.y / scale, radius.value / scale, 0, Math.PI * 2)
     offCtx.fill()
     offCtx.restore()
+    redraw()
   }
-
-  redraw()
 }
+
 
 
 function clearATop() {
@@ -165,12 +192,36 @@ function restoreATop() {
   redraw()
 }
 
-function loadImages(aPath) {
+async function loadImages(aPath) {
   const bPath = aPath.replace(/a(\.jpg|\.png)$/i, 'b$1')
   loaded.a = false
   loaded.b = false
   offCtx.clearRect(0, 0, offCanvas.width, offCanvas.height)
   mousePos = null
+
+  // 判断是否省流模式
+  let aUrl = aPath + '?t=' + Date.now()
+  let bUrl = bPath + '?t=' + Date.now()
+
+  if (lowDataMode) {
+    try {
+      const backendUrl = `http://${window.location.hostname}:8000/compress`
+      const res = await fetch(backendUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ aPath, bPath })
+      })
+      const data = await res.json()
+      // 服务端返回压缩后的图片 URL
+      aUrl = `http://${window.location.hostname}:8000${data.aCompressed}`
+      bUrl = `http://${window.location.hostname}:8000${data.bCompressed}`
+    } catch (err) {
+      console.error('压缩请求失败', err)
+      // 失败则回退到原图
+      aUrl = aPath + '?t=' + Date.now()
+      bUrl = bPath + '?t=' + Date.now()
+    }
+  }
 
   imgA.onload = () => {
     loaded.a = true
@@ -188,9 +239,10 @@ function loadImages(aPath) {
     redraw()
   }
 
-  imgA.src = aPath + '?t=' + Date.now()
-  imgB.src = bPath + '?t=' + Date.now()
+  imgA.src = aUrl
+  imgB.src = bUrl
 }
+
 
 watch(() => route.params.imgPath, (p) => loadImages(p), { immediate: true })
 
@@ -287,7 +339,11 @@ function pollTaskStatus(taskId, bPath) {
   }, 2000) // 每 2 秒查询一次
 }
 
-
+function confirmRegenerate() {
+  if (confirm("确定要重新生成吗？")) {
+    regenerate()
+  }
+}
 
 </script>
 
@@ -306,12 +362,62 @@ function pollTaskStatus(taskId, bPath) {
 .toolbar {
   display: flex;
   align-items: center;
-  padding: 5px 10px;
+  padding: 6px 10px;
   gap: 10px;
   background: #444;
   color: white;
   flex-shrink: 0;
-  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 42px;
+}
+
+.toolbar label {
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.toolbar input[type="range"] {
+  flex: 1;
+  max-width: 100px;
+  height: 26px;
+}
+
+.toolbar button {
+  padding: 4px 8px;
+  font-size: 13px;
+  border: none;
+  border-radius: 4px;
+  background: #666;
+  color: white;
+}
+
+.toolbar button:disabled {
+  opacity: 0.5;
+}
+
+/* -------- 桌面端优化 -------- */
+@media (min-width: 768px) {
+  .toolbar {
+    padding: 10px 16px;       /* 高度更大 */
+    gap: 16px;
+    font-size: 16px;          /* 字体放大 */
+    min-height: 54px;         /* toolbar 更高 */
+  }
+
+  .toolbar label {
+    font-size: 15px;
+  }
+
+  .toolbar input[type="range"] {
+    max-width: 180px;         /* 滑块更长 */
+    height: 32px;             /* 更高 */
+  }
+
+  .toolbar button {
+    padding: 6px 12px;
+    font-size: 15px;
+  }
 }
 
 canvas {
@@ -340,4 +446,6 @@ canvas {
 .toast.info {
   background: #2196f3;
 }
+
+
 </style>

@@ -19,12 +19,20 @@ import { ref } from 'vue'
 
 const props = defineProps({
   images: Array,
-  columns: { type: Number, default: 6 }  // 接收父组件传来的列数
+  columns: { type: Number, default: 6 },  // 接收父组件传来的列数
+  perspectiveMode: { type: Boolean, default: false },  // 接收透视模式
+  lowDataMode: { type: Boolean, default: false }  // 省流模式
 })
+
 function openViewer(imgPath) {
   const encoded = encodeURIComponent(imgPath)
-  window.open(`${window.location.origin}/viewer/${encoded}`, '_blank')
+  const pmode = props.perspectiveMode ? 1 : 0  // 转成数字或字符串
+  const lmode = props.lowDataMode ? 1 : 0      // 省流模式
+  window.open(`${window.location.origin}/viewer/${encoded}?p=${pmode}&l=${lmode}`, '_blank')
 }
+
+
+
 function getThumbnail(imgUrl) {
   try {
     const url = new URL(imgUrl)
