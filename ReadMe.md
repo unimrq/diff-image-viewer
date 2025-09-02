@@ -21,7 +21,7 @@
 ## 使用方法
 
 ### 1. 配置图片目录
-在 `backend/main.py` 中修改 `ROOT_DIR` 为你想浏览的图片文件夹，修改`THUMB_DIR`为指定的缩略图生成文件夹：  
+在 `backend/my_config.py` 中修改 `ROOT_DIR` 为你想浏览的图片文件夹，修改`THUMB_DIR`为指定的缩略图生成文件夹：  
 
 ```
 ROOT_DIR = Path(r"D:\AI-Photo\素材\diff").resolve() # 图片根目录
