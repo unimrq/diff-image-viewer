@@ -26,7 +26,7 @@
 ```
 ROOT_DIR = Path(r"D:\AI-Photo\素材\diff").resolve() # 图片根目录
 THUMB_DIR = Path(r"D:\AI-Photo\thumbnails").resolve() # 缩略图生成目录
-
+PASSWORD = "12345678" # 登录密码
 generator = ImageGenerator(
     server_address="127.0.0.1:8180", # comfyUI的地址
     input_node="203", # 图片输入节点ID
@@ -79,3 +79,6 @@ python start_all.py
 2. 增加透视模式；
 3. 修改主页菜单；
 4. 增加生成缩略图的调用；
+### V1.4
+1. 新增登录密码
+2. 优化使用体验
