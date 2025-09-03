@@ -18,7 +18,20 @@
 
 ---
 
-## 使用方法
+## 使用方法（即开即用）
+
+### 1. 准备文件
+- 下载以下文件并放在同一目录下：
+  - `Diff-Image-Viewer.exe`
+  - `config.ini`
+
+### 2. 配置
+- 打开 `config.ini`，根据需要修改配置项。
+
+### 3. 启动程序
+- 双击 `Diff-Image-Viewer.exe` 启动程序。
+- 打开浏览器访问 [http://localhost:8000/](http://localhost:8000/) 即可使用。
+
 
 ### 1. 配置图片目录
 在 `backend/my_config.py` 中修改 `ROOT_DIR` 为你想浏览的图片文件夹，修改`THUMB_DIR`为指定的缩略图生成文件夹：  
@@ -73,8 +86,7 @@ python start_all.py
 1. 适配移动端；
 2. 修正了一些界面上的显示bug；
 ### V1.2
-1. 新增重新生成b图功能，通过comfyui的API实现；
-2. 注意：该工作流必须已经在comfyui中可用，才能调用API出图；
+新增重新生成b图功能，通过comfyui的API实现。注意：该工作流必须已经在comfyui中可用，才能调用API出图；
 ### V1.3
 1. 增加省流模式；
 2. 增加透视模式；
@@ -83,3 +95,6 @@ python start_all.py
 ### V1.4
 1. 新增登录密码
 2. 优化使用体验
+### V1.5
+1. 打包文件，即开即用；
+2. 修改了部分API（可能有遗留bug，如果有发现麻烦提交issue）

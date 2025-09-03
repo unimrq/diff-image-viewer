@@ -140,7 +140,7 @@ const authToken = ref(localStorage.getItem("authToken") || "")
 async function tryLogin() {
   const base = getApiBase()
   try {
-    const res = await fetch(`${base}/login`, {
+    const res = await fetch(`${base}/api/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password: password.value })
@@ -184,15 +184,21 @@ async function handleMobileSelect(folder) {
 }
 
 function getApiBase() {
-  const { protocol, hostname } = window.location
-  const backendPort = 8000
-  return `${protocol}//${hostname}:${backendPort}`
+  // 如果是开发环境（Vite 默认端口 5173），走 8000
+  if (window.location.port === "5173") {
+    const { protocol, hostname } = window.location
+    const backendPort = 8000
+    return `${protocol}//${hostname}:${backendPort}`
+  }
+  // 生产环境同源，直接用相对路径
+  return ''
 }
+
 
 async function generateThumbnails() {
   const base = getApiBase()
   try {
-    const res = await authedFetch(`${base}/resize`, { method: 'POST' })
+    const res = await authedFetch(`${base}/api/resize`, { method: 'POST' })
     const data = await res.json()
     alert('任务已触发')
   } catch (err) {

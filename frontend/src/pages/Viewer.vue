@@ -211,7 +211,7 @@ async function loadImages(aPath) {
 
   if (lowDataMode) {
     try {
-      const backendUrl = `http://${window.location.hostname}:8000/compress`
+      const backendUrl = `http://${window.location.hostname}:8000/api/compress`
       const res = await fetch(backendUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -284,7 +284,7 @@ async function regenerate() {
   const bPath = aPath.replace(/a(\.jpg|\.png)$/i, 'b$1')  // 对应的 b 图路径
 
   try {
-    const backendUrl = `http://${window.location.hostname}:8000/regenerate`
+    const backendUrl = `http://${window.location.hostname}:8000/api/regenerate`
 
     const res = await fetch(backendUrl, {
       method: 'POST',
@@ -319,7 +319,7 @@ async function regenerate() {
 }
 
 function pollTaskStatus(taskId, bPath) {
-  const backendUrl = `http://${window.location.hostname}:8000/task_status/${taskId}`
+  const backendUrl = `http://${window.location.hostname}:8000/api/task_status/${taskId}`
   const interval = setInterval(async () => {
     try {
       const res = await fetch(backendUrl)

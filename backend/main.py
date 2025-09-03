@@ -1,3 +1,5 @@
+import os
+import sys
 import time
 import uuid
 
@@ -8,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from loguru import logger
 from PIL import Image
+from starlette.staticfiles import StaticFiles
+
 from backend.resize import generate_thumbnail, process_folder
 from my_config import ROOT_DIR, THUMB_DIR, generator, PASSWORD
 from urllib.parse import urlparse, unquote
@@ -29,6 +33,28 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# -----------------------
+# dist 路径
+# -----------------------
+if getattr(sys, "frozen", False):
+    base_path = sys._MEIPASS  # 打包后的路径
+else:
+    base_path = os.path.dirname(__file__)
+
+dist_path = Path(base_path) / "dist"
+
+
+
+# -----------------------
+# 挂载 Vue 静态文件
+# -----------------------
+# assets 和 favicon.ico 静态挂载
+if (dist_path / "assets").exists():
+    app.mount("/assets", StaticFiles(directory=dist_path / "assets"), name="assets")
+
+if (dist_path / "favicon.ico").exists():
+    app.mount("/favicon.ico", StaticFiles(directory=dist_path, html=True), name="favicon")
 
 # -----------------------
 # API：列出目录内容
@@ -86,7 +112,7 @@ def regenerate_task(task_id: str, file_path_a: Path, file_path_b: Path):
         TASK_STATUS[task_id] = f"error: {e}"
         logger.error(f"[{task_id}] 生成失败: {e}")
 
-@app.post("/regenerate")
+@app.post("/api/regenerate")
 async def regenerate(req: RegenRequest, background_tasks: BackgroundTasks):
     # 解析 aPath
     parsed_a = urlparse(req.aPath)
@@ -129,17 +155,17 @@ async def regenerate(req: RegenRequest, background_tasks: BackgroundTasks):
 
     return {"status": "accepted", "task_id": task_id}
 
-@app.get("/task_status/{task_id}")
+@app.get("/api/task_status/{task_id}")
 async def task_status(task_id: str):
     return {"task_id": task_id, "status": TASK_STATUS.get(task_id, "not found")}
 
-@app.post("/resize")
+@app.post("/api/resize")
 async def trigger_resize(background_tasks: BackgroundTasks):
     background_tasks.add_task(process_folder)
     return {"status": "accepted"}
 
 
-@app.post("/compress")
+@app.post("/api/compress")
 async def compress_images(req: RegenRequest):
     """
     前端传 aPath 和 bPath（原图路径），服务端生成压缩图返回 URL
@@ -172,12 +198,12 @@ async def compress_images(req: RegenRequest):
     # ---------- 返回前端可访问 URL ----------
     # 假设前端可以通过 /cache/xxx.jpg 访问
     return {
-        "aCompressed": f"/cache/{a_compress.name}",
-        "bCompressed": f"/cache/{b_compress.name}"
+        "aCompressed": f"/api/cache/{a_compress.name}",
+        "bCompressed": f"/api/cache/{b_compress.name}"
     }
 
 # 提供压缩图静态访问
-@app.get("/cache/{filename}")
+@app.get("/api/cache/{filename}")
 def serve_cache_image(filename: str):
     file_path = CACHE_DIR / filename
     if not file_path.exists():
@@ -192,7 +218,7 @@ VALID_TOKENS = set()
 class LoginRequest(BaseModel):
     password: str
 
-@app.post("/login")
+@app.post("/api/login")
 async def login(req: LoginRequest):
     if req.password == PASSWORD:
         now = str(time.time())
@@ -210,3 +236,29 @@ def check_auth(credentials: HTTPAuthorizationCredentials = Depends(security)):
     if token not in VALID_TOKENS:
         raise HTTPException(status_code=401, detail="未授权")
     return token
+
+
+# -----------------------
+# Vue 路由处理
+# -----------------------
+@app.get("/{full_path:path}")
+def serve_vue(full_path: str):
+    # 排除 API
+    if full_path.startswith("api"):
+        return {"detail": "Not Found"}
+
+    # 返回 Vue index.html
+    index_file = dist_path / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
+
+    return {"detail": "index.html not found"}
+
+@app.get("/favicon.ico")
+def favicon():
+    return FileResponse(dist_path / "favicon.ico")
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -7,7 +7,6 @@
             :src="getThumbnail(img)"
             loading="lazy"
             @click="openViewer(img)"
-            @dblclick="openViewer(img)"
           />
     </div>
     </div>
@@ -15,8 +14,6 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-
 const props = defineProps({
   images: Array,
   columns: { type: Number, default: 6 },  // 接收父组件传来的列数
@@ -25,25 +22,31 @@ const props = defineProps({
 })
 
 function openViewer(imgPath) {
-  const encoded = encodeURIComponent(imgPath)
-  const pmode = props.perspectiveMode ? 1 : 0  // 转成数字或字符串
-  const lmode = props.lowDataMode ? 1 : 0      // 省流模式
-  window.open(`${window.location.origin}/viewer/${encoded}?p=${pmode}&l=${lmode}`, '_blank')
+  // imgPath 是相对 /images/... 的路径
+  const encodedPath = encodeURIComponent(imgPath)   // 只编码路径
+  const pmode = props.perspectiveMode ? 1 : 0
+  const lmode = props.lowDataMode ? 1 : 0
+
+  // query 参数单独拼接
+  const url = `${window.location.origin}/viewer/${encodedPath}?p=${pmode}&l=${lmode}`
+  window.open(url, "_blank")
 }
 
 
 
 function getThumbnail(imgUrl) {
   try {
-    const url = new URL(imgUrl)
-    const host = url.origin       // 包含协议+IP+端口，例如 http://100.123.100.150:8000
+    const base = window.location.origin  // 当前站点协议+host
+    const url = new URL(imgUrl, base)
+    const host = url.origin
     const relativePath = url.pathname.replace(/^\/images\//, "")
     return `${host}/thumbnails/${relativePath}`
   } catch (e) {
-    console.error("URL 解析失败:", imgUrl)
+    console.error("URL 解析失败:", imgUrl, e)
     return imgUrl
   }
 }
+
 
 
 </script>
