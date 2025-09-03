@@ -4,17 +4,31 @@
 
 ---
 
+## ！！！特别注意！！！
+本仅能识别成对的差分图片，文件名需分别为 XXX+a.jpg 和 XXX+b.jpg，成对的两张图片文件在同一级目录下。如有特殊需求，可根据实际情况自行修改代码实现。
+示例：
+
+![img_2.jpg](res/img_2.jpg)
+
+
 ## 功能预览
 
 ### 1. 文件浏览功能
-可以方便地浏览指定目录下的图片文件。  
+可以方便地浏览指定目录下的图片文件。采用美观的瀑布流图片框架，可在设置中调整列数。
 
 ![img.jpg](res/img.jpg)
 
 ### 2. 图片差分功能
-通过“擦除”操作查看两张图片的差异，支持调整橡皮擦大小，实时显示差异区域。  
+通过“擦除”操作查看两张图片的差异，支持调整橡皮擦大小，实时显示差异区域。
+目前有两种模式：擦除模式和透视模式，在设置中可进行调整。  
 
 ![img_1.jpg](res/img_1.jpg)
+
+### 3. 省流模式
+通过生成缩略图，以加快图片资源的访问。不在局域网内可在设置中打开此选项。
+
+### 4. 图片重新生成
+借助ComfyUI的工作流API实现指定图片的重新绘制。目前只支持"自动重绘NFK版v1.01.json"。其他需要自行调试。
 
 ---
 
@@ -33,20 +47,24 @@
 - 打开浏览器访问 [http://localhost:8000/](http://localhost:8000/) 即可使用。
 
 ## 使用方法（适合开发者）
-### 1. 配置图片目录
-在 `backend/my_config.py` 中修改 `ROOT_DIR` 为你想浏览的图片文件夹，修改`THUMB_DIR`为指定的缩略图生成文件夹：  
+### 1. 配置文件修改
+在 `backend/config.ini` 中修改 `root_dir` 为你想浏览的图片文件夹，修改`thumb_dir`为指定的缩略图生成文件夹：  
 
 ```
-ROOT_DIR = Path(r"D:\AI-Photo\素材\diff").resolve() # 图片根目录
-THUMB_DIR = Path(r"D:\AI-Photo\thumbnails").resolve() # 缩略图生成目录
-PASSWORD = "12345678" # 登录密码
-generator = ImageGenerator(
-    server_address="127.0.0.1:8180", # comfyUI的地址
-    input_node="203", # 图片输入节点ID
-    output_node="794", # 图片输出节点ID
-    noise_nodes=["736", "555"], # 噪声节点ID
-)
+[paths]
+root_dir = D:\AI-Photo\素材\ty  # 图片根目录
+thumb_dir = D:\AI-Photo\thumbnails # 图片缩略图目录
+
+[auth]
+password = 12345678  # 登录密码
+
+[generator]
+server_address = 127.0.0.1:8180  # ComfyUI地址
+input_node = 203  # 工作流的图片输入节点
+output_node = 794  # 工作流的图片输出节点
+noise_nodes = 736,555 # 工作流的噪声节点
 ```
+
 ### 2. 执行图片压缩
 切换到 backend 文件夹并执行`resize.py`：
 
@@ -68,14 +86,9 @@ pip install -r requirements.txt
 python start_all.py
 ```
 访问
-```http://localhost:5173/```
+[http://localhost:5173/](http://localhost:5173/)
 即可打开应用
 
-## ！！！特别注意！！！
-本仅能识别成对的差分图片，文件名需分别为 XXX+a.jpg 和 XXX+b.jpg，成对的两张图片文件在同一级目录下。如有特殊需求，可根据实际情况自行修改代码实现。
-示例：
-
-![img_2.jpg](res/img_2.jpg)
 
 ## 功能更新
 ### V1.0
