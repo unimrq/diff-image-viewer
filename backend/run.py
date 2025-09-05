@@ -2,6 +2,8 @@ import json
 import os
 import random
 import uuid
+from pathlib import Path
+
 import requests
 import websocket
 from loguru import logger
@@ -16,7 +18,7 @@ class ImageGenerator:
         self.client_id = str(uuid.uuid4())
 
     def _generate_seed(self):
-        return random.randint(10 ** 14, 10 ** 16 - 1)
+        return random.randint(10 ** 12, 10 ** 14 - 1)
 
     def _queue_prompt(self, prompt):
         p = {"prompt": prompt, "client_id": self.client_id}
@@ -108,3 +110,41 @@ class ImageGenerator:
             logger.warning("生成结果中没有 b_image")
 
         return results
+
+    def generate_batch(self, workflow, input_dir, input_suffix="a", output_suffix="b", exts=None):
+        """
+        遍历 input_dir（含子目录），生成 b 图并保存到与 a 图相同的目录。
+        跳过已经存在的 b 图。
+        """
+        exts = exts or ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif']
+        input_dir = Path(input_dir)
+        results = []
+
+        for file_path in input_dir.rglob("*"):
+            if not file_path.is_file():
+                continue
+            if file_path.suffix.lower().lstrip('.') not in exts:
+                continue
+            if not file_path.stem.endswith(input_suffix):
+                continue  # 只处理带 a 的文件
+
+            # 输出文件名：在同一目录下生成 b 图
+            output_file_name = file_path.name.replace(f"{input_suffix}{file_path.suffix}",
+                                                      f"{output_suffix}{file_path.suffix}")
+            output_file_path = file_path.parent / output_file_name
+
+            if output_file_path.exists():
+                logger.info(f"已存在，跳过: {output_file_path}")
+                continue  # 跳过已有的 b 图
+
+            try:
+                logger.info(f"开始处理: {file_path} -> {output_file_path}")
+                generated_files = self.generate(workflow, str(file_path), str(output_file_path))
+                results.extend(generated_files)
+            except Exception as e:
+                logger.error(f"处理 {file_path} 失败: {e}")
+
+        logger.info(f"批量生成完成，总共生成 {len(results)} 个文件")
+        return results
+
+

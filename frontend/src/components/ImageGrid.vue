@@ -23,12 +23,13 @@ const props = defineProps({
 
 function openViewer(imgPath) {
   // imgPath 是相对 /images/... 的路径
-  const encodedPath = encodeURIComponent(imgPath)   // 只编码路径
+  const index = props.images.indexOf(imgPath)
   const pmode = props.perspectiveMode ? 1 : 0
   const lmode = props.lowDataMode ? 1 : 0
 
   // query 参数单独拼接
-  const url = `${window.location.origin}/viewer/${encodedPath}?p=${pmode}&l=${lmode}`
+  const url = `${window.location.origin}/viewer/${encodeURIComponent(imgPath)}?index=${index}&p=${pmode}&l=${lmode}`
+  localStorage.setItem("images", JSON.stringify(props.images))
   window.open(url, "_blank")
 }
 

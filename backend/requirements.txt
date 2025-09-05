@@ -1,0 +1,7 @@
+requests~=2.32.4
+websocket~=0.2.1
+websocket-client~=1.8.0
+loguru~=0.7.3
+fastapi~=0.116.1
+pydantic~=2.10.6
+pillow~=10.4.0
